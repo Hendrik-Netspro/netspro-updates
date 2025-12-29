@@ -211,7 +211,7 @@ VALID_PASSWORDS = {
     "Flecki66",
     "HendrikHankingBoris",
 }
-VALID_LCENSIS = {
+VALID_LCENSIS = {<
     "8098-2231-8302-5525",
     "6372-1829-0036-2135",
 }
@@ -227,8 +227,8 @@ OFFICIAL_PRO_PLUGIN_REGISTRY = {
 }
 
 # Update server configuration
-SERVER_URL = "http://192.168.178.14:8000"  # <- Server IP
-LOCAL_VERSION = "2.4.3.2b"  # <- Your current version
+SERVER_URL = "https://raw.githubusercontent.com/Hendrik-Netspro/netspro-updates/main"
+LOCAL_VERSION = "2.4.3.3a"  # <- Your current version
 EXPIRY_DATE = datetime(2026, 1, 1)  # <- expiry date (year, month, day)
 
 
