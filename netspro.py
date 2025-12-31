@@ -38,7 +38,7 @@ def ensure_dependencies():
             __import__(module)
             KI_AVAILABLE = True
 
-        except ImportError:
+        except Exception:
             clear_terminal()
             print("To run PYKI you need external packages.")
             print("Missing package:", package)
@@ -228,7 +228,7 @@ OFFICIAL_PRO_PLUGIN_REGISTRY = {
 
 # Update server configuration
 SERVER_URL = "https://raw.githubusercontent.com/Hendrik-Netspro/netspro-updates/main"
-LOCAL_VERSION = "2.4.3.3b"  # <- Your current version
+LOCAL_VERSION = "2.4.3.3a"  # <- Your current version
 EXPIRY_DATE = datetime(2026, 1, 1)  # <- expiry date (year, month, day)
 
 
