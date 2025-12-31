@@ -25,7 +25,13 @@ import sqlite3
 import pickle
 import json
 
+
 def ensure_dependencies():
+    """
+    Prüft, ob alle benötigten Python-Module installiert sind.
+    Installiert sie optional mit pip.
+    Setzt KI_AVAILABLE entsprechend.
+    """
     global KI_AVAILABLE
     KI_AVAILABLE = False
 
@@ -33,41 +39,37 @@ def ensure_dependencies():
         "sklearn": "scikit-learn"
     }
 
+    all_ok = True
+
     for module, package in required.items():
         try:
             __import__(module)
-            KI_AVAILABLE = True
-
         except Exception:
-            clear_terminal()
             print("To run PYKI you need external packages.")
             print("Missing package:", package)
             print("If this happens even after installing it, contact: Hendrik.Hanking@icloud.com")
 
             answer = input("Should PYKI install the missing packages? (y/n): ")
 
-            if answer.lower() == "n":
-                KI_AVAILABLE = False
-                return
+            if answer.lower() != "y":
+                all_ok = False
+                break
 
             try:
                 print("Installing package...")
                 subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-                KI_AVAILABLE = True
+            except Exception as e:
+                print("Installation failed:", e)
+                all_ok = False
+                break
 
-            except Exception:
-                KI_AVAILABLE = False
-                return
+    KI_AVAILABLE = all_ok
 
 
 PLUGIN_DIR = "plugins"
 PRO_PLUGIN_DIR = "plugins"
 
 CONFIG = {}
-ensure_dependencies()
-
-from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
-from sklearn.linear_model import LogisticRegression  # type: ignore
 
 # Try to import Tkinter (GUI). If it fails, we disable mousecounter.
 try:
@@ -101,29 +103,38 @@ def background_gray(level=235):
 def BLACK(text):
     return f"\x1b[30m{text}{RESET}"
 
+
 def RED(text):
     return f"\x1b[31m{text}{RESET}"
+
 
 def GREEN(text):
     return f"\x1b[32m{text}{RESET}"
 
+
 def YELLOW(text):
     return f"\x1b[33m{text}{RESET}"
+
 
 def BLUE(text):
     return f"\x1b[34m{text}{RESET}"
 
+
 def MAGENTA(text):
     return f"\x1b[35m{text}{RESET}"
+
 
 def CYAN(text):
     return f"\x1b[36m{text}{RESET}"
 
+
 def WHITE(text):
     return f"\x1b[37m{text}{RESET}"
 
+
 def ORANGE(text):
     return f"\x1b[38;5;208m{text}{RESET}"
+
 
 # classic terminal green (ANSI 256 color 46)
 def TERMINAL_GREEN(text):
@@ -134,51 +145,67 @@ def TERMINAL_GREEN(text):
 def BRIGHT_BLACK(text):
     return f"\x1b[90m{text}{RESET}"
 
+
 def BRIGHT_RED(text):
     return f"\x1b[91m{text}{RESET}"
+
 
 def BRIGHT_GREEN(text):
     return f"\x1b[92m{text}{RESET}"
 
+
 def BRIGHT_YELLOW(text):
     return f"\x1b[93m{text}{RESET}"
+
 
 def BRIGHT_BLUE(text):
     return f"\x1b[94m{text}{RESET}"
 
+
 def BRIGHT_MAGENTA(text):
     return f"\x1b[95m{text}{RESET}"
+
 
 def BRIGHT_CYAN(text):
     return f"\x1b[96m{text}{RESET}"
 
+
 def BRIGHT_WHITE(text):
     return f"\x1b[97m{text}{RESET}"
 
+
 def ORANGE_BG(text):
     return f"\x1b[48;5;208m{text}{RESET}"
+
 
 # background colors
 def BLACK_BG(text):
     return f"\x1b[40m{text}{RESET}"
 
+
 def RED_BG(text):
     return f"\x1b[41m{text}{RESET}"
+
 
 def GREEN_BG(text):
     return f"\x1b[42m{text}{RESET}"
 
+
 def YELLOW_BG(text):
     return f"\x1b[43m{text}{RESET}"
+
 
 def BLUE_BG(text):
     return f"\x1b[44m{text}{RESET}"
 
+
 def MAGENTA_BG(text):
     return f"\x1b[45m{text}{RESET}"
 
+
 def CYAN_BG(text):
     return f"\x1b[46m{text}{RESET}"
+
 
 def WHITE_BG(text):
     return f"\x1b[47m{text}{RESET}"
@@ -191,11 +218,11 @@ PRO_PLUGIN_META = {}
 PRO_COMMANDS = {}
 
 VALID_PCs = {
-        "P9DJ4MY4L2",
-    }
+    "P9DJ4MY4L2",
+}
 VALID_DEV_PCs = {
-        "P9DJ4MY4L2",
-    }
+    "P9DJ4MY4L2",
+}
 
 
 def register_command(name, func):
@@ -228,7 +255,7 @@ OFFICIAL_PRO_PLUGIN_REGISTRY = {
 
 # Update server configuration
 SERVER_URL = "https://raw.githubusercontent.com/Hendrik-Netspro/netspro-updates/main"
-LOCAL_VERSION = "2.4.3.4a"  # <- Your current version
+LOCAL_VERSION = "2.4.3.2b"  # <- Your current version
 EXPIRY_DATE = datetime(2026, 1, 1)  # <- expiry date (year, month, day)
 
 
@@ -278,6 +305,7 @@ def load_config():
         CONFIG = {}
         with open("config.json", "w") as f:
             f.write("{}")
+
 
 # KI start
 def load_externel_db():
@@ -363,6 +391,10 @@ def save_model_and_vectorizer(cursor, model, vectorizer):
 
 
 def train_initial_model():
+    # sklearn nur hier importieren, wenn es wirklich gebraucht wird
+    from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
+    from sklearn.linear_model import LogisticRegression  # type: ignore
+
     inputs = ["Hi", "Info"]
     responses = [
         "How can I help you?",
@@ -442,6 +474,11 @@ def chatbot_feedback_loop(model, vectorizer, conn, cursor):
                 )
             else:
                 # now it makes sense to train
+                from sklearn.feature_extraction.text import (  # type: ignore
+                    TfidfVectorizer,
+                )
+                from sklearn.linear_model import LogisticRegression  # type: ignore
+
                 vectorizer = TfidfVectorizer()
                 train_X = vectorizer.fit_transform(inputs)
 
@@ -458,10 +495,14 @@ def chatbot_feedback_loop(model, vectorizer, conn, cursor):
 
 def pyki():
     global KI_AVAILABLE
-    if KI_AVAILABLE is False:
-        print(RED_BG("Contact support!!!"))
-        time.sleep(5)
+    # Dependencies nur prüfen, wenn pyki wirklich gestartet wird
+    ensure_dependencies()
+    if not KI_AVAILABLE:
+        print(RED_BG("PYKI is not available because required packages are missing."))
+        time.sleep(3)
         netspro()
+        return
+
     conn, cursor = load_or_create_db()
 
     model, vectorizer = load_model_and_vectorizer(cursor)
@@ -525,6 +566,7 @@ def load_pro_plugins():
                 print(f"Plugin {pro_plugin_name} could not be loaded: {e}")
 
     return pro_plugins
+
 
 def load_plugins():
     if not os.path.exists(PLUGIN_DIR):
@@ -1610,6 +1652,7 @@ def login():
         print(RED_BG("Invalid license or password"))
         time.sleep(2)
         sys.exit(0)
+
 
 if __name__ == "__main__":
     login()
